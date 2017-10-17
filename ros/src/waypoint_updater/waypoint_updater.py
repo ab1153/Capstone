@@ -24,8 +24,8 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 60 # Number of waypoints we will publish. You can change this number
-MAX_BRAKE_DISTANCE = 30 # distance to start brake 
+LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+MAX_BRAKE_DISTANCE = 60 # distance to start brake 
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -49,19 +49,21 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
+        self.final_waypoints_index_pub = rospy.Publisher('final_index', Int32, queue_size=1)
+
         # TODO: Add other member variables you need below
-        self.published = False
+        # self.published = False
         self.loop()
 
     def loop(self):
         rate = rospy.Rate(0.5) # 0.5Hz
         while not rospy.is_shutdown():
 
-            if (self.pose is not None) and (self.waypoints is not None) and not self.published:
+            if (self.pose is not None) and (self.waypoints is not None): # and not self.published:
                 self.update_final_waypoints()
                 self.publish_final_waypoints()
 
-            self.published = False
+            # self.published = False
             rate.sleep()
         rospy.spin()
 
@@ -88,7 +90,7 @@ class WaypointUpdater(object):
             if (self.pose is not None) and (self.waypoints is not None):
                 self.update_final_waypoints()
                 self.publish_final_waypoints()
-                self.published = True
+                # self.published = True
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
@@ -209,7 +211,9 @@ class WaypointUpdater(object):
 
         self.final_waypoints = final_waypoints
         rospy.loginfo('final_waypoint index:%s', index)
+        self.final_waypoints_index_pub.publish(Int32(index))
 
+        
     def publish_final_waypoints(self):
     	msg = Lane()
         msg.header.stamp = rospy.Time(0)
